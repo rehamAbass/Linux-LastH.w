@@ -1,1 +1,52 @@
 
+
+///////////				HW 6 Q.5 :
+#include <stdio.h>
+#include <dos.h>
+#include<stdlib.h>
+volatile int stopper = 0;
+ volatile int index = 3;
+volatile int diff1[4] = {0,0,0,0};
+volatile int diff2[4] = { 0,0,0,0 };
+volatile int inputFlag = 0;
+volatile int secondW = 0;
+void interrupt(*Int8save)(void);
+///////////////////////////////////////////////////////////////
+void interrupt myhandle() {
+	inputFlag = 1;
+	if (index == 0 && secondW == 1) { index = -1;  return; }
+	if (index == 0 && secondW == 0) {	//then it is the second word:
+		printf("\nNow AGAIN\n");
+		index = 3;		//update the index.
+		secondW = 1;
+	}
+	if (secondW == 1 && index <2) { diff2[3 - index] = stopper; }
+	else if (index < 2) { diff1[3 - index] = stopper; }
+	stopper = 0;
+	Int8Save();
+	if (index > 0)
+		index--;
+	while(inputFlag == 0)	stopper++;
+	inputFlag = 0;
+}
+//////////////////////////////////////////////////////////////
+int main() {
+	int i;
+	Int8save = getvect(8);		//save old func handles input-interrupt usually
+	setvect(8 ,myhandle);	//setUp new function to handle the interrupt
+	printf("\npress 5 chars:  ");
+
+	while (index > -1);
+
+	setvect(8,Int8save);		// return back the old vector
+	for (i = 0; i < 4; i++) {
+		if (diff1[i] != diff2[i]) { printf("\nFAILD\n"); }
+		else printf("\nGOOD\n");
+	}
+	return 0;
+}
+//////////////////////////////////////////////////////////////////////////////////
+/*
+
+
+*/
